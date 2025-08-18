@@ -4,8 +4,10 @@ import os
 import pickle
 import uuid
 import re
+from flask_cors import CORS
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
+CORS(app)
 
 with open('exception_commands.bin', 'rb') as f:
     VULN_KEYS = pickle.load(f)
