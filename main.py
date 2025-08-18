@@ -20,6 +20,10 @@ def security_check_ifsafe(code, lang):
 def index():
     return render_template('index.html')
 
+@app.route('/status')
+def status():
+    return jsonify({'status': 'running', 'service': 'coderunner API'})
+
 @app.route('/api/run', methods=['POST'])
 def run_code():
     data = request.get_json()
