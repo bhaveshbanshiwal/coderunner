@@ -9,14 +9,7 @@ from flask_cors import CORS
 app = Flask(__name__, static_folder='static', template_folder='templates')
 CORS(app)
 
-with open('exception_commands.bin', 'rb') as f:
-    VULN_KEYS = pickle.load(f)
-
-def security_check_ifsafe(code, lang):
-    for key in VULN_KEYS.get(lang, []):
-        if key in code:
-            return False
-    return True
+from security import security_check_ifsafe
 
 @app.route('/')
 def index():
