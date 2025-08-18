@@ -17,3 +17,5 @@ def run_code():
         return jsonify({'output': r.stdout + r.stderr})
     return jsonify({'output': "Access Denied"})
 if __name__ == '__main__': app.run(debug=True)
+
+# Added C++ execution logic stub
