@@ -47,6 +47,17 @@ VULNERABLE_KEYWORDS = {
         'free(',
         'new ',
         'delete ',
+    ],
+    'javascript': [
+        'require("child_process")',
+        'require("fs")',
+        'require("net")',
+        'require("os")',
+        'eval(',
+        'setTimeout(',
+        'setInterval(',
+        'process.env',
+        'process.exit'
     ]
 }
 
