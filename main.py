@@ -115,5 +115,36 @@ def run_cpp_code():
 
     return jsonify({'output': output})
 
+@app.route('/api/run_js', methods=['POST'])
+def run_js_code():
+    data = request.get_json()
+    code = data.get('code', '')
+    output = ""
+    if security_check_ifsafe(code, 'javascript'):
+        unique_id = uuid.uuid4().hex
+        js_filename = f"temp_{unique_id}.js"
+
+        try:
+            with open(js_filename, "w") as f:
+                f.write(code)
+            
+            run_result = subprocess.run(
+                ['node', js_filename],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            output = run_result.stdout + run_result.stderr
+
+        except Exception as e:
+            output = str(e)
+        finally:
+            if os.path.exists(js_filename):
+                os.remove(js_filename)
+    else:
+        output = "Access Denied"
+
+    return jsonify({'output': output})
+
 if __name__ == '__main__':
     app.run(debug=True)
