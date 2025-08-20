@@ -70,51 +70,46 @@ def install_package():
     except Exception as e:
         return jsonify({'log': str(e), 'success': False})
 
+def execute_cpp(code, unique_id):
+    cpp_filename = f"temp_{unique_id}.cpp"
+    executable_filename = f"temp_exe_{unique_id}"
+    output = ""
+    try:
+        with open(cpp_filename, "w") as f:
+            f.write(code)
+        
+        compile_result = subprocess.run(
+            ['g++', cpp_filename, '-o', executable_filename],
+            capture_output=True, text=True, timeout=10
+        )
+        
+        if compile_result.returncode != 0:
+            output = compile_result.stderr
+        else:
+            exe_to_run = f"{executable_filename}.exe" if os.name == 'nt' else f"./{executable_filename}"
+            run_result = subprocess.run(
+                [exe_to_run], capture_output=True, text=True, timeout=10
+            )
+            output = run_result.stdout + run_result.stderr
+
+    except subprocess.TimeoutExpired:
+        output = "Error: Execution timed out after 10 seconds."
+    except Exception as e:
+        output = f"Error: {str(e)}"
+    finally:
+        if os.path.exists(cpp_filename): os.remove(cpp_filename)
+        if os.path.exists(executable_filename): os.remove(executable_filename)
+        if os.path.exists(f"{executable_filename}.exe"): os.remove(f"{executable_filename}.exe")
+    return output
+
 @app.route('/api/run_cpp', methods=['POST'])
 def run_cpp_code():
     data = request.get_json()
     code = data.get('code', '')
-    output = ""
     if security_check_ifsafe(code, 'cpp'):
-        unique_id = uuid.uuid4().hex
-        cpp_filename = f"temp_{unique_id}.cpp"
-        executable_filename = f"temp_exe_{unique_id}"
-
-        try:
-            with open(cpp_filename, "w") as f:
-                f.write(code)
-            
-            compile_result = subprocess.run(
-                ['g++', cpp_filename, '-o', executable_filename],
-                capture_output=True,
-                text=True,
-                timeout=10
-            )
-            
-            if compile_result.returncode != 0:
-                output = compile_result.stderr
-            else:
-                exe_to_run = f"{executable_filename}.exe" if os.name == 'nt' else f"./{executable_filename}"
-                run_result = subprocess.run(
-                    [exe_to_run],
-                    capture_output=True,
-                    text=True,
-                    timeout=10
-                )
-                output = run_result.stdout + run_result.stderr
-
-        except Exception as e:
-            output = str(e)
-        finally:
-            if os.path.exists(cpp_filename):
-                os.remove(cpp_filename)
-            if os.path.exists(executable_filename):
-                os.remove(executable_filename)
-            if os.path.exists(f"{executable_filename}.exe"):
-                os.remove(f"{executable_filename}.exe")
+        output = execute_cpp(code, uuid.uuid4().hex)
     else:
         output = "Access Denied"
-
     return jsonify({'output': output})
 
 @app.route('/api/run_js', methods=['POST'])
