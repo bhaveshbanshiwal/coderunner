@@ -19,35 +19,34 @@ def index():
 def status():
     return jsonify({'status': 'running', 'service': 'coderunner API'})
 
+def execute_python(code, unique_id):
+    filename = f"temp_{unique_id}.py"
+    output = ""
+    try:
+        with open(filename, "w") as f:
+            f.write(code)
+        result = subprocess.run(
+            ['python', filename],
+            capture_output=True, text=True, timeout=10
+        )
+        output = result.stdout + result.stderr
+    except subprocess.TimeoutExpired:
+        output = "Error: Execution timed out after 10 seconds."
+    except Exception as e:
+        output = f"Error: {str(e)}"
+    finally:
+        if os.path.exists(filename):
+            os.remove(filename)
+    return output
+
 @app.route('/api/run', methods=['POST'])
 def run_code():
     data = request.get_json()
     code = data.get('code', '')
-    output = ""
     if security_check_ifsafe(code, 'python'):
-        unique_id = uuid.uuid4().hex
-        filename = f"temp_{unique_id}.py"
-        try:
-            with open(filename, "w") as f:
-                f.write(code)
-            
-            result = subprocess.run(
-                ['python', filename],
-                capture_output=True,
-                text=True,
-                timeout=10
-            )
-            output = result.stdout + result.stderr
-        except subprocess.TimeoutExpired:
-            output = "Error: Execution timed out after 10 seconds."
-        except Exception as e:
-            output = f"Error: {str(e)}"
-        finally:
-            if os.path.exists(filename):
-                os.remove(filename)
+        output = execute_python(code, uuid.uuid4().hex)
     else:
         output = "Access Denied"
-            
     return jsonify({'output': output})
 
 @app.route('/api/install', methods=['POST'])
