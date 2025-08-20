@@ -38,8 +38,10 @@ def run_code():
                 timeout=10
             )
             output = result.stdout + result.stderr
+        except subprocess.TimeoutExpired:
+            output = "Error: Execution timed out after 10 seconds."
         except Exception as e:
-            output = str(e)
+            output = f"Error: {str(e)}"
         finally:
             if os.path.exists(filename):
                 os.remove(filename)
