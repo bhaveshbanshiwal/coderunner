@@ -52,7 +52,10 @@ def run_code():
 @app.route('/api/install', methods=['POST'])
 def install_package():
     data = request.get_json()
-    package_name = data.get('package', '')
+    if not data or 'package' not in data:
+        return jsonify({'log': 'Missing package parameter.', 'success': False})
+        
+    package_name = str(data.get('package', '')).strip()
 
     if not package_name or not re.match(r'^[a-zA-Z0-9_\-]+$', package_name):
         return jsonify({'log': 'Invalid package name.', 'success': False})
