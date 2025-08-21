@@ -1,15 +1,13 @@
-from flask import Flask, request, jsonify, render_template
-import subprocess
 import os
-import pickle
-import uuid
 import re
+import subprocess
+import uuid
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
+from security import security_check_ifsafe
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 CORS(app)
-
-from security import security_check_ifsafe
 
 @app.route('/')
 def index():
